@@ -7,21 +7,34 @@ import { gql,useQuery } from "@apollo/client";
 /* ---> Define queries, mutations and fragments here.
 ... We pass day as a dynamic variable ($day) to filter sessions by days i.e Wed, Thur
 */
-const SESSIONS = gql`
-  query sessions($day: String!) {
-    sessions(day: $day){
-      id
+const SESSION_ATTRIBUTES = gql`
+  fragment SessionAttributes on Session{
+    id
       title
       day
       room
       level
+      startsAt
+      description @include(if: $isDescription) 
       speakers{
         id
         name
       }
-      
+  }
+`
+const SESSIONS = gql`
+  query sessions($day: String!,$isDescription: Boolean!) {
+    intro: sessions(day: $day,level:"Introductory and overview"){
+      ...SessionAttributes
+    }
+    intermediate: sessions(day: $day,level:"Intermediate"){
+      ...SessionAttributes
+    }
+    advanced: sessions(day: $day,level:"Advanced"){
+      ...SessionAttributes
     }
   }
+  ${SESSION_ATTRIBUTES}
 `
 //execute query & store response json
 
@@ -36,11 +49,13 @@ function AllSessionList() {
   const SessionList = ({day})=>{
 
     if(day==="") day="Wednesday"
+    let isDescription = false
 
-    const {loading,error,data} = useQuery(SESSIONS, { variables: {day} })
+    const {loading,error,data} = useQuery(SESSIONS, { variables: {day, isDescription} })
     if(loading) return <p>Loading sessions. Please wait...</p>
     if(error) return <p>Error occur while fetching data.</p>
-    return data.sessions.map( (session)=>(
+
+  /*  return data.sessions.map( (session)=>(
       <SessionItem 
         key={session.id}
         session={ 
@@ -49,11 +64,40 @@ function AllSessionList() {
       />
     ))
   }
+*/
+//apply aliases below
+const results = []
+results.push(data.intro.map( (session)=>(
+  <SessionItem 
+        key={session.id}
+        session={ 
+          {...session}
+        }
+      />
+)))
+results.push(data.intermediate.map( (session)=>(
+  <SessionItem 
+        key={session.id}
+        session={ 
+          {...session}
+        }
+      />
+)))
+results.push(data.advanced.map( (session)=>(
+  <SessionItem 
+        key={session.id}
+        session={ 
+          {...session}
+        }
+      />
+)))
 
+return results
+}
 function SessionItem({session}) {
 
   /* ---> Replace hard coded session values with data that you get back from GraphQL server here */
-  const {id,title,level,day,room,speakers}=session
+  const {id,title,level,day,room,startsAt,description,speakers}=session
   return (
     <div key={id} className="col-xs-12 col-sm-6" style={{ padding: 5 }}>
       <div className="panel panel-default">
@@ -64,7 +108,8 @@ function SessionItem({session}) {
         <div className="panel-body">
           <h5>{`Day: ${day}`}</h5>
           <h5>{`Room Number: ${room}`}</h5>
-          <h5>{`Starts at: `}</h5>
+          <h5>{`Starts at: ${startsAt}`}</h5>
+         {description && <h5>{`Description: ${description}`}</h5>}
         </div>
         <div className="panel-footer">
           {
