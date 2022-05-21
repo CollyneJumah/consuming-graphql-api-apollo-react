@@ -2,35 +2,83 @@ import React, {useState} from "react";
 import "./style-sessions.css";
 import { Link } from "react-router-dom"
 import { Formik, Field, Form } from "formik"
+import { gql,useQuery } from "@apollo/client";
 
-/* ---> Define queries, mutations and fragments here */
+/* ---> Define queries, mutations and fragments here.
+... We pass day as a dynamic variable ($day) to filter sessions by days i.e Wed, Thur
+*/
+const SESSIONS = gql`
+  query sessions($day: String!) {
+    sessions(day: $day){
+      id
+      title
+      day
+      room
+      level
+      speakers{
+        id
+        name
+      }
+      
+    }
+  }
+`
+//execute query & store response json
+
 
 function AllSessionList() {
    /* ---> Invoke useQuery hook here to retrieve all sessions and call SessionItem */
    return <SessionItem />
 }
 
-function SessionList () {
-  /* ---> Invoke useQuery hook here to retrieve sessions per day and call SessionItem */
-  return <SessionItem />
-}
 
-function SessionItem() {
+  /* ---> Invoke useQuery hook here to retrieve sessions per day and call SessionItem */
+  const SessionList = ({day})=>{
+
+    if(day==="") day="Wednesday"
+
+    const {loading,error,data} = useQuery(SESSIONS, { variables: {day} })
+    if(loading) return <p>Loading sessions. Please wait...</p>
+    if(error) return <p>Error occur while fetching data.</p>
+    return data.sessions.map( (session)=>(
+      <SessionItem 
+        key={session.id}
+        session={ 
+          {...session}
+        }
+      />
+    ))
+  }
+
+function SessionItem({session}) {
 
   /* ---> Replace hard coded session values with data that you get back from GraphQL server here */
+  const {id,title,level,day,room,speakers}=session
   return (
-    <div key={'id'} className="col-xs-12 col-sm-6" style={{ padding: 5 }}>
+    <div key={id} className="col-xs-12 col-sm-6" style={{ padding: 5 }}>
       <div className="panel panel-default">
         <div className="panel-heading">
-          <h3 className="panel-title">{"title"}</h3>
-          <h5>{`Level: `}</h5>
+          <h3 className="panel-title">{title}</h3>
+          <h5>{`Level: ${level} `}</h5>
         </div>
         <div className="panel-body">
-          <h5>{`Day: `}</h5>
-          <h5>{`Room Number: `}</h5>
+          <h5>{`Day: ${day}`}</h5>
+          <h5>{`Room Number: ${room}`}</h5>
           <h5>{`Starts at: `}</h5>
         </div>
         <div className="panel-footer">
+          {
+            speakers.map(({id,name})=>(
+              <span key={id} style={{padding:2}}>
+                <Link
+                  className="btn btn-default btn-lg"
+                  to={`/conference/speaker/${id}`}
+                >
+                  view {name}'s Profile
+                </Link>
+              </span>
+            ))
+          }
         </div>
       </div>
     </div>
@@ -39,6 +87,7 @@ function SessionItem() {
 
 export function Sessions() {
 
+  //use state for day
   const [day, setDay] = useState("");
   return (
     <>
