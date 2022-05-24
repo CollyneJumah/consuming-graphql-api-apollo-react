@@ -32,7 +32,7 @@ const CREATE_SESSION= gql`
   }
 `
 const FEATURED_SPEAKER= gql`
-mutation markFeatured(speakerId: ID!, $featured: Boolean!){
+  mutation markFeatured($speakerId: ID!, $featured: Boolean!){
   markFeatured(speakerId: $speakerId, featured: $featured){
     id
   }
