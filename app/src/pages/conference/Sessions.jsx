@@ -2,7 +2,7 @@ import React, {useState} from "react";
 import "./style-sessions.css";
 import { Link } from "react-router-dom"
 import { Formik, Field, Form } from "formik"
-import { gql,useQuery } from "@apollo/client";
+import { gql,useQuery, useMutation } from "@apollo/client";
 
 /* ---> Define queries, mutations and fragments here.
 ... We pass day as a dynamic variable ($day) to filter sessions by days i.e Wed, Thur
@@ -21,6 +21,22 @@ const SESSION_ATTRIBUTES = gql`
         name
       }
   }
+`
+
+const CREATE_SESSION= gql`
+  mutation createSession($session: SessionInput!){
+    createSession(session: $session){
+      id
+      title
+    }
+  }
+`
+const FEATURED_SPEAKER= gql`
+mutation markFeatured(speakerId: ID!, $featured: Boolean!){
+  markFeatured(speakerId: $speakerId, featured: $featured){
+    id
+  }
+}
 `
 const SESSIONS = gql`
   query sessions($day: String!,$isDescription: Boolean!) {
@@ -107,8 +123,8 @@ function SessionItem({session}) {
         </div>
         <div className="panel-body">
           <h5>{`Day: ${day}`}</h5>
-          <h5>{`Room Number: ${room}`}</h5>
-          <h5>{`Starts at: ${startsAt}`}</h5>
+          {room && <h5>{`Room Number: ${room}`}</h5>}
+          {startsAt && <h5>{`Starts at: ${startsAt}`}</h5>}
          {description && <h5>{`Description: ${description}`}</h5>}
         </div>
         <div className="panel-footer">
@@ -171,7 +187,10 @@ export function Sessions() {
 export function SessionForm() {	
 
   /* ---> Call useMutation hook here to create new session and update cache */
-
+  const [create,{called, error}] = useMutation(CREATE_SESSION)
+  //when the form is submitted, its in the called status
+  if(called) return <p>Session submitted successfully</p>
+  if(error) return <p>Error occur while submitting session...</p>
   return (	
     <div	
       style={{	
@@ -189,8 +208,9 @@ export function SessionForm() {
           day: "",	
           level: "",	
         }}	
-        onSubmit={() => {
+        onSubmit={ async (values) => {
           /* ---> Call useMutation mutate function here to create new session */
+          await create({variables: {session: values}} )
         }}	
       >	
         {() => (	
@@ -213,7 +233,7 @@ export function SessionForm() {
                 id="inputDescription"	
                 className="form-control"	
                 required	
-                name="description"	
+                name="description"
               />	
             </div>	
             <div className="mb-3" style={{ paddingBottom: 5 }}>	

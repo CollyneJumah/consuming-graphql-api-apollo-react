@@ -3630,6 +3630,20 @@
       "level": "Intermediate",
       "day": "Thursday",
       "id": "814b1f5e-e6df-440b-a91c-df198b5bbed2"
+    },
+    {
+      "title": "Collins New Session",
+      "description": "This assessment tests students their level of understanding on the Application of Android Intent. ",
+      "level": "Intermediate",
+      "day": "Friday",
+      "id": "731f6d32-c11d-4df7-a7e0-54f7a4ff0936"
+    },
+    {
+      "title": "New Title ",
+      "description": "my description, collins",
+      "level": "Advanced",
+      "day": "Thursday",
+      "id": "267aa8cb-420f-455e-88d6-56dc8682462c"
     }
   ]
 }
