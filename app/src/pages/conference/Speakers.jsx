@@ -13,6 +13,7 @@ const SPEAKER_ATTRIBUTES= gql`
       id  
       title
     }
+    featured
   }
 `
 const SPEAKERS= gql`
@@ -25,7 +26,7 @@ const SPEAKERS= gql`
 `
 //Fragment: Query by speakers Id to
 const SPEAKER_BY_ID = gql`
-  query speakerById($id: ID) {
+  query speakerById($id: ID!) {
     speakerById(id: $id){
       ...SpeakerInfo
     }
@@ -37,17 +38,17 @@ const SpeakerList = () => {
 
   /* ---> Replace hardcoded speaker values with data that you get back from GraphQL server here */
   const {loading,error,data} = useQuery(SPEAKERS) 
-  if(loading) return <p>Loading Speakers</p>
+  if(loading) return <p>Loading Speakers...</p>
   if(error)  return <p>Error occur loading speakers.</p>
 
   const featured = false;
 
-  return data.speakers.map( ({id,name,bio,sessions})=>(
+  return data.speakers.map( ({id,name,bio,sessions,featured})=>(
     <div
-    key={id}
-    className="col-xs-12 col-sm-6 col-md-6"
-    style={{ padding: 5 }}
-  >
+      key={id}
+      className="col-xs-12 col-sm-6 col-md-6"
+      style={{ padding: 5 }}
+    >
     <div className="panel panel-default">
       <div className="panel-heading">
         <h3 className="panel-title">{`Speaker: ${name}`}</h3>
